@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +19,19 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
+    // client websocket
+    private WebSocketClient mWebSocketClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +75,10 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Sending commands...", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                // Send commands
+                sendMessage();
             }
         });
 
@@ -82,10 +101,79 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(getApplicationContext(),
+                    "Connecting...", Toast.LENGTH_SHORT).show();
+            connectWebSocket();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Connect with esp8266 default IP
+     */
+    private void connectWebSocket() {
+        URI uri;
+        JSONObject outMsg;
+
+        try {
+            uri = new URI("ws://192.168.4.1:81");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return;
+        }
+        Map<String, String> headers = new HashMap<>();
+        mWebSocketClient = new WebSocketClient(uri,new Draft_17(),headers,0) {
+            @Override
+            public void onOpen(ServerHandshake serverHandshake) {
+                Log.d("robota", "Websocket Opened");
+                // send message when open socket
+                mWebSocketClient.send("ClientAndroid");
+            }
+
+
+            @Override
+            public void onMessage(final String onMsg) {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("robota", "Message ON");
+                        // put msg at textview
+                        TextView textView = (TextView)findViewById(R.id.position_label);
+                        textView.setText(onMsg);
+                    }
+                });
+            }
+
+            @Override
+            public void onClose(int i, String s, boolean b) {
+                Log.d("robota", "Closed " + s);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.d("robota", "Error " + e.getMessage());
+            }
+        };
+        mWebSocketClient.connect();
+    }
+
+    private void sendMessage() {
+        TextView textView = (TextView)findViewById(R.id.commands_edit);
+        String sendMsg =textView.getText().toString();
+
+        //JSON msg
+        JSONObject client=new JSONObject();
+        try {
+            client.put("msg",sendMsg);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        mWebSocketClient.send(client.toString());
+        textView.setText(client.toString());
     }
 
     /**
@@ -116,10 +204,34 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            View rootView = null;
+            TextView textView;
+            // each section different fragment_layout
+            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+                // "COMMANDS"
+                case 1:
+                    rootView = inflater.inflate(R.layout.fragment_commands, container, false);
+                    textView = (TextView) rootView.findViewById(R.id.commands_label);
+                    textView.setText(R.string.commands);
+                    break;
+                // "MAP"
+                case 2:
+                    rootView = inflater.inflate(R.layout.fragment_map, container, false);
+                    textView = (TextView) rootView.findViewById(R.id.position_label);
+                    textView.setText(R.string.position);
+                    break;
+
+                // "OTHERS"
+                case 3:
+                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                    textView = (TextView) rootView.findViewById(R.id.section_label);
+                    textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+                    break;
+
+            }
+
             return rootView;
+
         }
     }
 
@@ -150,11 +262,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "COMMANDS";
                 case 1:
-                    return "SECTION 2";
+                    return "MAP";
                 case 2:
-                    return "SECTION 3";
+                    return "OTHERS";
             }
             return null;
         }
