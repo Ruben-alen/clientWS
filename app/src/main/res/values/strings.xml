@@ -2,6 +2,8 @@
     <string name="app_name">ClientWS</string>
     <string name="action_settings">Connect</string>
     <string name="section_format">Section: %1$d</string>
-    <string name="commands">Commands</string>
-    <string name="position">[0,0]</string>
+    <string name="state_label">STATE</string>
+    <string name="position_label">POSITION</string>
+    <string name="id_label">ID</string>
+    <string name="commands_label">COMMANDS</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.gamesp.clientws;
 
+import android.content.pm.ActivityInfo;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -24,7 +25,6 @@ import android.widget.Toast;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -56,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -78,7 +80,9 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "Sending commands...", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
                 // Send commands
-                sendMessage();
+                TextView textView = (TextView)findViewById(R.id.commands_edit);
+                String sendMsg =textView.getText().toString();
+                sendMessage(sendMsg);
             }
         });
 
@@ -115,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private void connectWebSocket() {
         URI uri;
-        JSONObject outMsg;
 
         try {
             uri = new URI("ws://192.168.4.1:81");
@@ -127,11 +130,10 @@ public class MainActivity extends AppCompatActivity {
         mWebSocketClient = new WebSocketClient(uri,new Draft_17(),headers,0) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
-                Log.d("robota", "Websocket Opened");
-                // send message when open socket
-                mWebSocketClient.send("ClientAndroid");
+                Log.w("robota", "Websocket Opened");
+                // send message 'STOP/SLEEP' when open socket
+                sendMessage("S");
             }
-
 
             @Override
             public void onMessage(final String onMsg) {
@@ -139,10 +141,27 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("robota", "Message ON");
-                        // put msg at textview
-                        TextView textView = (TextView)findViewById(R.id.position_label);
-                        textView.setText(onMsg);
+                        Log.w("robota", "Message ON:"+onMsg);
+                        //JSON onMsg
+                        try {
+                            JSONObject client=new JSONObject(onMsg);
+                            if(client.has("idRobota")) {
+                                TextView textView = (TextView) findViewById(R.id.id_content);
+                                textView.setText(client.getString("idRobota"));
+                            }
+                            if(client.has("state")) {
+                                TextView textView = (TextView)findViewById(R.id.state_content);
+                                textView.setText(client.getString("state"));
+                            }
+                            if(client.has("mov")) {
+                                TextView textView = (TextView)findViewById(R.id.position_content);
+                                String executing = client.getString("mov")+":"+client.getInt("X")+":"+client.getInt("Y")+":"+client.getString("compass");
+                                textView.setText(executing);
+                            }
+
+                        } catch (JSONException e) {
+                            Log.e("robota",e.getMessage());
+                        }
                     }
                 });
             }
@@ -160,20 +179,17 @@ public class MainActivity extends AppCompatActivity {
         mWebSocketClient.connect();
     }
 
-    private void sendMessage() {
-        TextView textView = (TextView)findViewById(R.id.commands_edit);
-        String sendMsg =textView.getText().toString();
-
+    private void sendMessage(String sendMsg) {
         //JSON msg
         JSONObject client=new JSONObject();
         try {
-            client.put("msg",sendMsg);
+            client.put("commands",sendMsg);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e("robota",e.getMessage());
         }
 
         mWebSocketClient.send(client.toString());
-        textView.setText(client.toString());
+        Log.w("robota", client.toString());
     }
 
     /**
@@ -212,13 +228,11 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_commands, container, false);
                     textView = (TextView) rootView.findViewById(R.id.commands_label);
-                    textView.setText(R.string.commands);
+                    textView.setText(R.string.commands_label);
                     break;
                 // "MAP"
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
-                    textView = (TextView) rootView.findViewById(R.id.position_label);
-                    textView.setText(R.string.position);
                     break;
 
                 // "OTHERS"
