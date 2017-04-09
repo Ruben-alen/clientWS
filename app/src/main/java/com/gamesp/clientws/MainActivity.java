@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Button;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private int _myposition;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -161,9 +164,37 @@ public class MainActivity extends AppCompatActivity {
                                 textView.setText(client.getString("state"));
                             }
                             if(client.has("mov")) {
+                                //clear position
+                                ImageView cellInActive = (ImageView) findViewById(_myposition);
+                                cellInActive.setImageResource(R.drawable.cell);
+                                // actualize position
                                 TextView textView = (TextView)findViewById(R.id.position_content);
                                 String executing = client.getString("mov")+":"+client.getInt("X")+":"+client.getInt("Y")+":"+client.getString("compass");
                                 textView.setText(executing);
+                                _myposition = client.getInt("X")*10+client.getInt("Y");
+                                ImageView cellActive = (ImageView) findViewById(_myposition);
+                                int compass = 0;
+                                switch (client.getString("compass")) {
+                                    case "N":
+                                        compass = R.drawable.robota_n;
+                                        break;
+                                    case "S":
+                                        compass = R.drawable.robota_s;
+                                        break;
+                                    // ¡NO SE PORQUE ALREVES!
+                                    case "W":
+                                        compass = R.drawable.robota_e;
+                                        break;
+                                    // ¡NO SE PORQUE ALREVES!
+                                    case "E":
+                                        compass = R.drawable.robota_w;
+                                        break;
+                                    default :
+                                        compass = R.drawable.robota_n;
+                                        break;
+                                }
+                                cellActive.setImageResource(compass);
+
                             }
 
                         } catch (JSONException e) {
@@ -221,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
         // Add commands
         TextView textView = (TextView) findViewById(R.id.commands_edit);
         String commandTotal = textView.getText().toString();
-        textView.setText(view.getContentDescription()+commandTotal);
+        textView.setText(commandTotal+view.getContentDescription());
 
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
         ImageView imageCommand = new ImageView(this);
@@ -292,6 +323,7 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = null;
             TextView textView;
+            GridLayout board;
             // each section different fragment_layout
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                 // "COMMANDS"
@@ -301,8 +333,23 @@ public class MainActivity extends AppCompatActivity {
                 // "MAP"
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
+                    board = (GridLayout) rootView.findViewById(R.id.board);
+                    //create a board 10x10
+                    for (int i=0;i<10;i++){
+                        for (int j=0;j<10;j++){
+                            ImageView cell = new ImageView(getActivity());
+                            LinearLayout.LayoutParams viewParamsCenter = new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            cell.setLayoutParams(viewParamsCenter);
+                            cell.setId(i*10+j);
+                            cell.setMaxHeight(12);
+                            cell.setMaxHeight(12);
+                            cell.setImageResource(R.drawable.cell);
+                            //cell.setAlpha(.5f);
+                            board.addView(cell);
+                        }
+                    }
                     break;
-
                 // "OTHERS"
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -311,11 +358,8 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
             }
-
             return rootView;
-
         }
-
 
     }
 

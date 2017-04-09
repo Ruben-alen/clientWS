@@ -2,9 +2,9 @@
     <string name="app_name">ClientWS</string>
     <string name="action_settings">Connect</string>
     <string name="section_format">Section: %1$d</string>
-    <string name="state_label">STATE</string>
+    <string name="state_label">STATE:</string>
     <string name="position_label">POSITION</string>
-    <string name="id_label">ID</string>
+    <string name="id_label">ID:</string>
     <string name="commands_label">COMMANDS</string>
     <string name="enter_commands_and_send">Enter commands and Send</string>
     <string name="command_forward">F</string>
