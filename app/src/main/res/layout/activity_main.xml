@@ -42,9 +42,9 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
+        android:layout_gravity="end|bottom"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="120dp"
-        android:src="@android:drawable/ic_menu_send" />
+        android:layout_marginBottom="16dp"
+        android:src="@android:drawable/ic_delete" />
 
 </android.support.design.widget.CoordinatorLayout>

@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mViewPager;
 
     // client websocket
-    private WebSocketClient mWebSocketClient;
+    private WebSocketClient mWebSocketClient = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,15 +76,21 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /**
+         * delete commnads, images and text view
+         */
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Sending commands...", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Delete", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                // Send commands
-                TextView textView = (TextView)findViewById(R.id.commands_edit);
-                String sendMsg =textView.getText().toString();
-                sendMessage(sendMsg);
+                TextView textView = (TextView) findViewById(R.id.commands_edit);
+                String commandTotal = textView.getText().toString();
+               // delete commands
+                textView.setText("");
+                // clear de linear layout
+                LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
+                linearLayout.removeAllViews();
             }
         });
 
@@ -108,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),
                     "Connecting...", Toast.LENGTH_SHORT).show();
             connectWebSocket();
-            return true;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -118,13 +126,12 @@ public class MainActivity extends AppCompatActivity {
      * Connect with esp8266 default IP
      */
     private void connectWebSocket() {
-        URI uri;
+        URI uri = null;
 
         try {
             uri = new URI("ws://192.168.4.1:81");
         } catch (URISyntaxException e) {
             e.printStackTrace();
-            return;
         }
         Map<String, String> headers = new HashMap<>();
         mWebSocketClient = new WebSocketClient(uri,new Draft_17(),headers,0) {
@@ -179,17 +186,80 @@ public class MainActivity extends AppCompatActivity {
         mWebSocketClient.connect();
     }
 
-    private void sendMessage(String sendMsg) {
+    /**
+     * Send a JSON object with commands
+     * @param sendMsg commands to Robota
+     * @return true if send ok
+     */
+    private boolean sendMessage(String sendMsg) {
         //JSON msg
         JSONObject client=new JSONObject();
         try {
             client.put("commands",sendMsg);
         } catch (JSONException e) {
             Log.e("robota",e.getMessage());
+            return false;
+        }
+        // only send if object was created
+        if (null == mWebSocketClient)
+            return false;
+        else {
+            Log.w("robota", client.toString());
+            mWebSocketClient.send(client.toString());
+            return true;
+        }
+    }
+
+    /**
+     * Create a String with the command and call sendMessage when click send button
+     * @param view command buttons
+     */
+    public void addCommand(View view) {
+        Toast.makeText(getApplicationContext(),
+                "Click "+view.getContentDescription(), Toast.LENGTH_SHORT).show();
+
+        // Add commands
+        TextView textView = (TextView) findViewById(R.id.commands_edit);
+        String commandTotal = textView.getText().toString();
+        textView.setText(view.getContentDescription()+commandTotal);
+
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
+        ImageView imageCommand = new ImageView(this);
+        LinearLayout.LayoutParams viewParamsCenter = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        imageCommand.setLayoutParams(viewParamsCenter);
+        switch (view.getContentDescription().charAt(0)) {
+            case 'F':
+                imageCommand.setImageResource(R.drawable.f);
+                break;
+            case 'B':
+                imageCommand.setImageResource(R.drawable.b);
+                break;
+            case 'L':
+                imageCommand.setImageResource(R.drawable.l);
+                break;
+            case 'R':
+                imageCommand.setImageResource(R.drawable.r);
+                break;
         }
 
-        mWebSocketClient.send(client.toString());
-        Log.w("robota", client.toString());
+        linearLayout.addView(imageCommand);
+
+    }
+
+    /**
+     * Send a complete commands
+     * @param view send button
+     */
+    public void sendCommand(View view) {
+        TextView textView = (TextView) findViewById(R.id.commands_edit);
+        String commandTotal = textView.getText().toString();
+        // Send
+        sendMessage(commandTotal);
+        textView.setText("");
+        // clear de linear layout
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
+        linearLayout.removeAllViews();
     }
 
     /**
@@ -227,8 +297,6 @@ public class MainActivity extends AppCompatActivity {
                 // "COMMANDS"
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_commands, container, false);
-                    textView = (TextView) rootView.findViewById(R.id.commands_label);
-                    textView.setText(R.string.commands_label);
                     break;
                 // "MAP"
                 case 2:
@@ -247,6 +315,8 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
 
         }
+
+
     }
 
     /**
