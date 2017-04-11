@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private int _myposition;
+    // must change the same atribute at inner class PlaceholderFragment
+    private int _cell_number = 8;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -96,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 linearLayout.removeAllViews();
             }
         });
+
 
     }
 
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                                 TextView textView = (TextView)findViewById(R.id.position_content);
                                 String executing = client.getString("mov")+":"+client.getInt("X")+":"+client.getInt("Y")+":"+client.getString("compass");
                                 textView.setText(executing);
-                                _myposition = client.getInt("X")*10+client.getInt("Y");
+                                _myposition = client.getInt("X")*_cell_number+client.getInt("Y");
                                 ImageView cellActive = (ImageView) findViewById(_myposition);
                                 int compass = 0;
                                 switch (client.getString("compass")) {
@@ -194,9 +197,7 @@ public class MainActivity extends AppCompatActivity {
                                         break;
                                 }
                                 cellActive.setImageResource(compass);
-
                             }
-
                         } catch (JSONException e) {
                             Log.e("robota",e.getMessage());
                         }
@@ -302,6 +303,7 @@ public class MainActivity extends AppCompatActivity {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private int _cell_number = 8;
 
         public PlaceholderFragment() {
         }
@@ -324,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
             View rootView = null;
             TextView textView;
             GridLayout board;
+
             // each section different fragment_layout
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                 // "COMMANDS"
@@ -335,15 +338,14 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
                     board = (GridLayout) rootView.findViewById(R.id.board);
                     //create a board 10x10
-                    for (int i=0;i<10;i++){
-                        for (int j=0;j<10;j++){
+                    for (int i=0;i<_cell_number;i++){
+                        for (int j=0;j<_cell_number;j++){
                             ImageView cell = new ImageView(getActivity());
                             LinearLayout.LayoutParams viewParamsCenter = new LinearLayout.LayoutParams(
                                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                             cell.setLayoutParams(viewParamsCenter);
-                            cell.setId(i*10+j);
-                            cell.setMaxHeight(12);
-                            cell.setMaxHeight(12);
+                            cell.setId(i*_cell_number+j);
+                            cell.setScaleType(ImageView.ScaleType.FIT_XY);
                             cell.setImageResource(R.drawable.cell);
                             //cell.setAlpha(.5f);
                             board.addView(cell);
