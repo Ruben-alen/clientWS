@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    // cell position
     private int _myposition;
     // must change the same atribute at inner class PlaceholderFragment
     private int _cell_number = 8;
@@ -93,9 +94,12 @@ public class MainActivity extends AppCompatActivity {
                 String commandTotal = textView.getText().toString();
                // delete commands
                 textView.setText("");
+                /*
                 // clear de linear layout
                 LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
                 linearLayout.removeAllViews();
+                _index = 0;
+                */
             }
         });
 
@@ -128,6 +132,13 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /** Event onclick button fragment 'MAP' to connect wit websocket server
+     *
+     * @param view button connect
+     */
+    void connectws(View view){
+        connectWebSocket();
+    }
     /**
      * Connect with esp8266 default IP
      */
@@ -146,6 +157,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.w("robota", "Websocket Opened");
                 // send message 'STOP/SLEEP' when open socket
                 sendMessage("S");
+                Button buttonConnect = (Button) findViewById(R.id.connect);
+                buttonConnect.setText("Connected");
             }
 
             @Override
@@ -184,13 +197,11 @@ public class MainActivity extends AppCompatActivity {
                                     case "S":
                                         compass = R.drawable.robota_s;
                                         break;
-                                    // ¡NO SE PORQUE ALREVES!
                                     case "W":
-                                        compass = R.drawable.robota_e;
-                                        break;
-                                    // ¡NO SE PORQUE ALREVES!
-                                    case "E":
                                         compass = R.drawable.robota_w;
+                                        break;
+                                    case "E":
+                                        compass = R.drawable.robota_e;
                                         break;
                                     default :
                                         compass = R.drawable.robota_n;
@@ -207,15 +218,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClose(int i, String s, boolean b) {
-                Log.d("robota", "Closed " + s);
+                Log.w("robota", "Closed " + s);
             }
 
             @Override
             public void onError(Exception e) {
-                Log.d("robota", "Error " + e.getMessage());
+                Log.w("robota", "Error " + e.getMessage());
             }
         };
         mWebSocketClient.connect();
+
     }
 
     /**
@@ -249,17 +261,21 @@ public class MainActivity extends AppCompatActivity {
     public void addCommand(View view) {
         Toast.makeText(getApplicationContext(),
                 "Click "+view.getContentDescription(), Toast.LENGTH_SHORT).show();
-
-        // Add commands
+        // Add letters-commands, string to send
         TextView textView = (TextView) findViewById(R.id.commands_edit);
         String commandTotal = textView.getText().toString();
         textView.setText(commandTotal+view.getContentDescription());
+        /*
+        // TODO Add commands icon to layout
 
+        // find layout to put icons
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
-        ImageView imageCommand = new ImageView(this);
-        LinearLayout.LayoutParams viewParamsCenter = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        imageCommand.setLayoutParams(viewParamsCenter);
+
+        // create a new Image
+
+        ImageView imageCommand = new ImageView(getApplicationContext());
+
+        // set icon
         switch (view.getContentDescription().charAt(0)) {
             case 'F':
                 imageCommand.setImageResource(R.drawable.f);
@@ -275,7 +291,15 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        linearLayout.addView(imageCommand);
+        // create layout parameters
+        LinearLayout.LayoutParams viewParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        // add parameters to image
+        imageCommand.setLayoutParams(viewParams);
+        // add image to layout
+        linearLayout.addView(imageCommand,_index);
+        */
 
     }
 
@@ -289,9 +313,11 @@ public class MainActivity extends AppCompatActivity {
         // Send
         sendMessage(commandTotal);
         textView.setText("");
+        /*
         // clear de linear layout
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.totalCommands);
         linearLayout.removeAllViews();
+        */
     }
 
     /**
@@ -329,12 +355,8 @@ public class MainActivity extends AppCompatActivity {
 
             // each section different fragment_layout
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                // "COMMANDS"
-                case 1:
-                    rootView = inflater.inflate(R.layout.fragment_commands, container, false);
-                    break;
                 // "MAP"
-                case 2:
+                case 1:
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
                     board = (GridLayout) rootView.findViewById(R.id.board);
                     //create a board 10x10
@@ -352,17 +374,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     break;
-                // "OTHERS"
-                case 3:
-                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                    textView = (TextView) rootView.findViewById(R.id.section_label);
-                    textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+                // "COMMANDS"
+                case 2:
+                    rootView = inflater.inflate(R.layout.fragment_commands, container, false);
                     break;
-
-            }
+                }
             return rootView;
         }
-
     }
 
     /**
@@ -384,19 +402,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            // Show 2 total pages.
+            return 2;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "COMMANDS";
-                case 1:
                     return "MAP";
-                case 2:
-                    return "OTHERS";
+                case 1:
+                    return "COMMANDS";
             }
             return null;
         }

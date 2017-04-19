@@ -7,6 +7,33 @@
     tools:context="com.gamesp.clientws.MainActivity$PlaceholderFragment">
     <LinearLayout
         android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp">
+        <TextView
+            android:id="@+id/position_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/position_label"
+            android:padding="2dp" />
+        <TextView
+            android:id="@+id/position_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:hint="mov,X,Y,compass" />
+    </LinearLayout>
+
+    <GridLayout
+        android:id="@+id/board"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:rowCount="@integer/maxcell"
+        android:columnCount="@integer/maxcell">
+    </GridLayout>
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="5dp">
@@ -20,7 +47,7 @@
             android:id="@+id/id_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="id"
+            android:hint="Robota-XXXX"
             android:padding="2dp" />
         <TextView
             android:id="@+id/state_label"
@@ -32,29 +59,16 @@
             android:id="@+id/state_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="state"
+            android:hint="@string/state_default"
             android:padding="2dp" />
-
-        <TextView
-            android:id="@+id/position_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/position_label"
-            android:padding="5dp" />
-
-        <TextView
-            android:id="@+id/position_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="2dp" />
-    </LinearLayout>
-
-    <GridLayout
-        android:id="@+id/board"
+        </LinearLayout>
+    <Button
+        android:id="@+id/connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:rowCount="@integer/maxcell"
-        android:columnCount="@integer/maxcell">
-    </GridLayout>
+        android:text="@string/connect_Button"
+        android:contentDescription="@string/command_connect"
+        android:onClick="connectws"
+        android:layout_margin="10dp"
+        android:layout_gravity="center_horizontal" />
 </LinearLayout>

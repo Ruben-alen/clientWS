@@ -3,7 +3,7 @@
     <string name="action_settings">Connect</string>
     <string name="section_format">Section: %1$d</string>
     <string name="state_label">STATE:</string>
-    <string name="position_label">POSITION</string>
+    <string name="position_label">POSITION: </string>
     <string name="id_label">ID:</string>
     <string name="commands_label">COMMANDS</string>
     <string name="enter_commands_and_send">Enter commands and Send</string>
@@ -12,4 +12,7 @@
     <string name="command_send">S</string>
     <string name="command_right">R</string>
     <string name="command_back">B</string>
+    <string name="command_connect">Connect</string>
+    <string name="state_default">not connected yet</string>
+    <string name="connect_Button">Connect with Robota</string>
 </resources>
