@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     // cell position
     private int _myposition;
-    // must change the same atribute at inner class PlaceholderFragment
-    private int _cell_number = 8;
+    // must change the same atribute at inner class PlaceholderFragment and layout fragment_map.xml
+    private int _cell_number = 6;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
-        private int _cell_number = 8;
+        private int _cell_number = 6;
 
         public PlaceholderFragment() {
         }
@@ -359,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
                     board = (GridLayout) rootView.findViewById(R.id.board);
-                    //create a board 10x10
+                    //create a board
                     for (int i=0;i<_cell_number;i++){
                         for (int j=0;j<_cell_number;j++){
                             ImageView cell = new ImageView(getActivity());
