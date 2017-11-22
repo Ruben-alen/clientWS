@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
                 TextView textView = (TextView) findViewById(R.id.commands_edit);
                 String commandTotal = textView.getText().toString();
-               // delete commands
+                // delete commands
                 textView.setText("");
                 /*
                 // clear de linear layout
@@ -132,13 +132,15 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /** Event onclick button fragment 'MAP' to connect wit websocket server
+    /**
+     * Event onclick button fragment 'MAP' to connect wit websocket server
      *
      * @param view button connect
      */
-    void connectws(View view){
+    void connectws(View view) {
         connectWebSocket();
     }
+
     /**
      * Connect with esp8266 default IP
      */
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         Map<String, String> headers = new HashMap<>();
-        mWebSocketClient = new WebSocketClient(uri,new Draft_17(),headers,0) {
+        mWebSocketClient = new WebSocketClient(uri, new Draft_17(), headers, 0) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 Log.w("robota", "Websocket Opened");
@@ -167,27 +169,27 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.w("robota", "Message ON:"+onMsg);
+                        Log.w("robota", "Message ON:" + onMsg);
                         //JSON onMsg
                         try {
-                            JSONObject client=new JSONObject(onMsg);
-                            if(client.has("idRobota")) {
+                            JSONObject client = new JSONObject(onMsg);
+                            if (client.has("idRobota")) {
                                 TextView textView = (TextView) findViewById(R.id.id_content);
                                 textView.setText(client.getString("idRobota"));
                             }
-                            if(client.has("state")) {
-                                TextView textView = (TextView)findViewById(R.id.state_content);
+                            if (client.has("state")) {
+                                TextView textView = (TextView) findViewById(R.id.state_content);
                                 textView.setText(client.getString("state"));
                             }
-                            if(client.has("mov")) {
+                            if (client.has("mov")) {
                                 //clear position
                                 ImageView cellInActive = (ImageView) findViewById(_myposition);
                                 cellInActive.setImageResource(R.drawable.cell);
                                 // actualize position
-                                TextView textView = (TextView)findViewById(R.id.position_content);
-                                String executing = client.getString("mov")+":"+client.getInt("X")+":"+client.getInt("Y")+":"+client.getString("compass");
+                                TextView textView = (TextView) findViewById(R.id.position_content);
+                                String executing = client.getString("mov") + ":" + client.getInt("X") + ":" + client.getInt("Y") + ":" + client.getString("compass");
                                 textView.setText(executing);
-                                _myposition = client.getInt("X")*_cell_number+client.getInt("Y");
+                                _myposition = client.getInt("X") * _cell_number + client.getInt("Y");
                                 ImageView cellActive = (ImageView) findViewById(_myposition);
                                 int compass = 0;
                                 switch (client.getString("compass")) {
@@ -203,14 +205,14 @@ public class MainActivity extends AppCompatActivity {
                                     case "E":
                                         compass = R.drawable.robota_e;
                                         break;
-                                    default :
+                                    default:
                                         compass = R.drawable.robota_n;
                                         break;
                                 }
                                 cellActive.setImageResource(compass);
                             }
                         } catch (JSONException e) {
-                            Log.e("robota",e.getMessage());
+                            Log.e("robota", e.getMessage());
                         }
                     }
                 });
@@ -232,16 +234,24 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Send a JSON object with commands
+     *
      * @param sendMsg commands to Robota
      * @return true if send ok
      */
     private boolean sendMessage(String sendMsg) {
         //JSON msg
-        JSONObject client=new JSONObject();
+        JSONObject client = new JSONObject();
         try {
-            client.put("commands",sendMsg);
+
+            if (sendMsg.equals("RRR")) {
+                client.put("compass", "N");
+                //client.put("X", 1);
+                Log.i("Codigo especial:"," YES");
+            } else {
+                client.put("commands", sendMsg);
+            }
         } catch (JSONException e) {
-            Log.e("robota",e.getMessage());
+            Log.e("robota", e.getMessage());
             return false;
         }
         // only send if object was created
@@ -256,15 +266,15 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Create a String with the command and call sendMessage when click send button
+     *
      * @param view command buttons
      */
     public void addCommand(View view) {
-        Toast.makeText(getApplicationContext(),
-                "Click "+view.getContentDescription(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(),"Click " + view.getContentDescription(), Toast.LENGTH_SHORT).show();
         // Add letters-commands, string to send
         TextView textView = (TextView) findViewById(R.id.commands_edit);
         String commandTotal = textView.getText().toString();
-        textView.setText(commandTotal+view.getContentDescription());
+        textView.setText(commandTotal + view.getContentDescription());
         /*
         // TODO Add commands icon to layout
 
@@ -305,11 +315,13 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Send a complete commands
+     *
      * @param view send button
      */
     public void sendCommand(View view) {
         TextView textView = (TextView) findViewById(R.id.commands_edit);
         String commandTotal = textView.getText().toString();
+        Log.i("Comando total: ",commandTotal);
         // Send
         sendMessage(commandTotal);
         textView.setText("");
@@ -360,13 +372,13 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_map, container, false);
                     board = (GridLayout) rootView.findViewById(R.id.board);
                     //create a board
-                    for (int i=0;i<_cell_number;i++){
-                        for (int j=0;j<_cell_number;j++){
+                    for (int i = 0; i < _cell_number; i++) {
+                        for (int j = 0; j < _cell_number; j++) {
                             ImageView cell = new ImageView(getActivity());
                             LinearLayout.LayoutParams viewParamsCenter = new LinearLayout.LayoutParams(
                                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                             cell.setLayoutParams(viewParamsCenter);
-                            cell.setId(i*_cell_number+j);
+                            cell.setId(i * _cell_number + j);
                             cell.setScaleType(ImageView.ScaleType.FIT_XY);
                             cell.setImageResource(R.drawable.cell);
                             //cell.setAlpha(.5f);
@@ -378,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_commands, container, false);
                     break;
-                }
+            }
             return rootView;
         }
     }
